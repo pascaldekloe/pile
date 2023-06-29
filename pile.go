@@ -98,6 +98,32 @@ func (t *node[Key, Value]) appendPairs(dst []Pair[Key, Value]) []Pair[Key, Value
 	return dst
 }
 
+// Set provides sorted Key registration. The zero Set is empty and ready for
+// use. Do not copy the Set struct.
+//
+// The best-case for storage-overhead per Key is 16 bytes on 64-bit platforms.
+// The worst-case per Key is 48 bytes plus the size of another 2 Keys. E.g., the
+// uint costs 8 bytes, which makes an overhead of between 2 and 8 times the Key
+// size.
+type Set[Key Sortable] struct {
+	m Map[Key, struct{}]
+}
+
+// Size returns the number of Keys in the Set.
+func (c *Set[Key]) Size() int {
+	return c.m.Size()
+}
+
+// Find returns the Key's presence in the Set.
+func (c *Set[Key]) Find(k Key) bool {
+	return c.m.FindPointer(k) != nil
+}
+
+// Insert adds the Key to the Set if and only if the Key is absent.
+func (c *Set[Key]) Insert(entry Key) bool {
+	return c.m.Insert(entry, struct{}{})
+}
+
 // NoCopy triggers go(1) vet when copied after the first use.
 // See https://golang.org/issues/8005#issuecomment-190753527 for details.
 type noCopy struct{}

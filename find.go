@@ -81,3 +81,65 @@ func (m *Map[Key, Value]) Update(k Key, v Value) bool {
 	*vp = v
 	return true
 }
+
+// At returns a new Cursor at located the Key, with false for none. A Delete or
+// Insert renders the Cursor invalid.
+func (m *Map[Key, Value]) At(k Key) (Cursor[Key, Value], bool) {
+	t := m.top
+	for t != nil {
+		switch t.pairN {
+		case 3:
+			switch {
+			case k > t.pairs[1].K:
+				switch {
+				case k > t.pairs[2].K:
+					t = t.subs[3]
+				case k < t.pairs[2].K:
+					t = t.subs[2]
+				default:
+					return Cursor[Key, Value]{t: t, pairI: 2}, true
+				}
+			case k <= t.pairs[0].K:
+				if k < t.pairs[0].K {
+					t = t.subs[0]
+				} else {
+					return Cursor[Key, Value]{t: t, pairI: 0}, true
+				}
+			case k < t.pairs[1].K:
+				t = t.subs[1]
+			default:
+				return Cursor[Key, Value]{t: t, pairI: 1}, true
+			}
+
+		case 2:
+			switch {
+			case k >= t.pairs[1].K:
+				if k > t.pairs[1].K {
+					t = t.subs[2]
+				} else {
+					return Cursor[Key, Value]{t: t, pairI: 1}, true
+				}
+			case k <= t.pairs[0].K:
+				if k < t.pairs[0].K {
+					t = t.subs[0]
+				} else {
+					return Cursor[Key, Value]{t: t, pairI: 0}, true
+				}
+			default:
+				t = t.subs[1]
+			}
+
+		default:
+			switch {
+			case k > t.pairs[0].K:
+				t = t.subs[1]
+			case k < t.pairs[0].K:
+				t = t.subs[0]
+			default:
+				return Cursor[Key, Value]{t: t, pairI: 0}, true
+			}
+		}
+	}
+
+	return Cursor[Key, Value]{}, false
+}

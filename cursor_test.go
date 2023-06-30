@@ -36,10 +36,9 @@ func TestIteration(t *testing.T) {
 	t.Run("Forward", func(t *testing.T) {
 		allocN := testing.AllocsPerRun(1, func() {
 			verifyForward(t, &keys, want)
-
 		})
 		if !t.Failed() && allocN != 0 {
-			t.Errorf("cursor iteration allocated %f times, want 0", allocN)
+			t.Errorf("cursor allocated %f times, want 0", allocN)
 		}
 	})
 
@@ -48,7 +47,31 @@ func TestIteration(t *testing.T) {
 			verifyBackward(t, &keys, want)
 		})
 		if !t.Failed() && allocN != 0 {
-			t.Errorf("cursor iteration allocated %f times, want 0", allocN)
+			t.Errorf("cursor allocated %f times, want 0", allocN)
+		}
+	})
+
+	t.Run("JumpIn", func(t *testing.T) {
+		allocN := testing.AllocsPerRun(1, func() {
+			for i := 1; i < len(want); i++ {
+				j := i
+				for c, ok := keys.At(want[i]); ok; ok = c.Ascend() {
+					if j >= len(want) {
+						t.Fatalf("cursor since key № %d exceeds %d entries", i+1, len(want))
+					}
+					if got := c.Key(); got != want[j] {
+						t.Errorf("cursor since key № %d mismatched key № %d; got %d, want %d",
+							i+1, j+1, got, want[j])
+					}
+					j++
+				}
+				if j != len(want) {
+					t.Fatalf("cursor since key № %d missed %d entries", i+1, len(want) - j)
+				}
+			}
+		})
+		if !t.Failed() && allocN != 0 {
+			t.Errorf("cursor allocated %f times, want 0", allocN)
 		}
 	})
 }

@@ -144,6 +144,12 @@ func (keys *Set[Key]) Insert(entry Key) bool {
 	return keys.m.Insert(entry, struct{}{})
 }
 
+// At returns a new Cursor at located the Key, with false for none. A Delete or
+// Insert renders the Cursor invalid.
+func (keys *Set[Key]) At(k Key) (Cursor[Key, struct{}], bool) {
+	return keys.m.At(k)
+}
+
 // NoCopy triggers go(1) vet when copied after the first use.
 // See https://golang.org/issues/8005#issuecomment-190753527 for details.
 type noCopy struct{}

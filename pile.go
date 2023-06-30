@@ -24,17 +24,33 @@ type node[Key Sortable, Value any] struct {
 	pairs [3]Pair[Key, Value]  // own entries
 }
 
-func newNode[Key Sortable, Value any](above *node[Key, Value], p Pair[Key, Value]) *node[Key, Value] {
-	t := node[Key, Value]{above: above, pairN: 1}
+func (m *Map[Key, Value]) newNodeWith1(above *node[Key, Value], p Pair[Key, Value]) *node[Key, Value] {
+	t := m.newNode()
+	t.above = above
 	t.pairs[0] = p
-	return &t
+	t.pairN = 1
+	return t
 }
 
-func newNodeOfTwo[Key Sortable, Value any](above *node[Key, Value], p1, p2 Pair[Key, Value]) *node[Key, Value] {
-	t := node[Key, Value]{above: above, pairN: 2}
+func (m *Map[Key, Value]) newNodeWith2(above *node[Key, Value], p1, p2 Pair[Key, Value]) *node[Key, Value] {
+	t := m.newNode()
+	t.above = above
 	t.pairs[0] = p1
 	t.pairs[1] = p2
-	return &t
+	t.pairN = 2
+	return t
+}
+
+// NodeBatchN sets the number of nodes allocated together.
+const nodeBatchN = 512 // must be a power of two
+
+func (m *Map[Key, Value]) newNode() *node[Key, Value] {
+	if m.nodeN == 0 || m.nodeQ == nil {
+		m.nodeQ = new([nodeBatchN]node[Key, Value])
+		m.nodeN = nodeBatchN
+	}
+	m.nodeN--
+	return &m.nodeQ[m.nodeN&(nodeBatchN-1)]
 }
 
 // Map provides sorted Key–Value registration. The zero Map is empty and ready
@@ -51,6 +67,10 @@ type Map[Key Sortable, Value any] struct {
 
 	// reusable buffer for level push
 	split Pair[Key, Value]
+
+	// allocation pool
+	nodeN int
+	nodeQ *[nodeBatchN]node[Key, Value]
 }
 
 // Size returns the number of Keys in the Map.

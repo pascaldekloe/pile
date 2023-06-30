@@ -3,7 +3,7 @@ package pile
 // Insert assigns the Value to the Key if and only if the Key is absent.
 func (m *Map[Key, Value]) Insert(k Key, v Value) bool {
 	if m.top == nil {
-		m.top = newNode(nil, Pair[Key, Value]{K: k, V: v})
+		m.top = m.newNodeWith1(nil, Pair[Key, Value]{K: k, V: v})
 		return true
 	}
 	t := m.top
@@ -100,32 +100,32 @@ InsertSecondOverflow:
 	m.split.V = v
 Branche2Right:
 	t.pairN = 1
-	splitRight = newNodeOfTwo(t.above, t.pairs[1], t.pairs[2])
+	splitRight = m.newNodeWith2(t.above, t.pairs[1], t.pairs[2])
 	goto Overflow
 
 InsertThirdOverflow:
 	t.pairN = 2
 	m.split.K = k
 	m.split.V = v
-	splitRight = newNode(t.above, t.pairs[2])
+	splitRight = m.newNodeWith1(t.above, t.pairs[2])
 	goto Overflow
 
 InsertFourthOverflow:
 	t.pairN = 2
 	m.split = t.pairs[2]
-	splitRight = newNode(t.above, Pair[Key, Value]{K: k, V: v})
+	splitRight = m.newNodeWith1(t.above, Pair[Key, Value]{K: k, V: v})
 
 Overflow:
 	for t.above != nil {
 		above := t.above
-		splitRight = takeSplit(above, t, splitRight, &m.split)
+		splitRight = m.takeSplit(above, t, splitRight, &m.split)
 		if splitRight == nil {
 			return true
 		}
 		t = above
 	}
 
-	grow := newNode(nil, m.split)
+	grow := m.newNodeWith1(nil, m.split)
 	m.top.above = grow
 	splitRight.above = grow
 	grow.subs[0] = m.top
@@ -139,7 +139,7 @@ Overflow:
 // m.Update(k, v) || m.Insert(k, v).
 func (m *Map[Key, Value]) Put(k Key, v Value) {
 	if m.top == nil {
-		m.top = newNode(nil, Pair[Key, Value]{K: k, V: v})
+		m.top = m.newNodeWith1(nil, Pair[Key, Value]{K: k, V: v})
 		return
 	}
 	t := m.top
@@ -241,32 +241,32 @@ InsertSecondOverflow:
 	m.split.V = v
 Branche2Right:
 	t.pairN = 1
-	splitRight = newNodeOfTwo(t.above, t.pairs[1], t.pairs[2])
+	splitRight = m.newNodeWith2(t.above, t.pairs[1], t.pairs[2])
 	goto Overflow
 
 InsertThirdOverflow:
 	t.pairN = 2
 	m.split.K = k
 	m.split.V = v
-	splitRight = newNode(t.above, t.pairs[2])
+	splitRight = m.newNodeWith1(t.above, t.pairs[2])
 	goto Overflow
 
 InsertFourthOverflow:
 	t.pairN = 2
 	m.split = t.pairs[2]
-	splitRight = newNode(t.above, Pair[Key, Value]{K: k, V: v})
+	splitRight = m.newNodeWith1(t.above, Pair[Key, Value]{K: k, V: v})
 
 Overflow:
 	for t.above != nil {
 		above := t.above
-		splitRight = takeSplit(above, t, splitRight, &m.split)
+		splitRight = m.takeSplit(above, t, splitRight, &m.split)
 		if splitRight == nil {
 			return
 		}
 		t = above
 	}
 
-	grow := newNode(nil, m.split)
+	grow := m.newNodeWith1(nil, m.split)
 	m.top.above = grow
 	splitRight.above = grow
 	grow.subs[0] = m.top
@@ -277,7 +277,7 @@ Overflow:
 // TakeSplit adds node rightInsert next to fromSub in t, separated by the split.
 // The operation may cause another split (pointer update) with a new splitRight
 // (relative to t).
-func takeSplit[Key Sortable, Value any](t, fromSub, rightInsert *node[Key, Value], split *Pair[Key, Value]) (splitRight *node[Key, Value]) {
+func (m *Map[Key, Value]) takeSplit(t, fromSub, rightInsert *node[Key, Value], split *Pair[Key, Value]) (splitRight *node[Key, Value]) {
 	if t.pairN < 3 { // fits in node
 		t.pairN++
 		switch fromSub {
@@ -304,7 +304,7 @@ func takeSplit[Key Sortable, Value any](t, fromSub, rightInsert *node[Key, Value
 
 	switch fromSub {
 	case t.subs[0]: // rightInsert goes into second spot
-		splitRight = newNodeOfTwo(t.above, t.pairs[1], t.pairs[2])
+		splitRight = m.newNodeWith2(t.above, t.pairs[1], t.pairs[2])
 		if t.subs[1] != nil {
 			splitRight.subs[0] = t.subs[1]
 			splitRight.subs[0].above = splitRight
@@ -322,7 +322,7 @@ func takeSplit[Key Sortable, Value any](t, fromSub, rightInsert *node[Key, Value
 		*split, t.pairs[0] = t.pairs[0], *split
 	case t.subs[1]: // rightInsert goes into third sport
 		t.pairN = 1
-		splitRight = newNodeOfTwo(t.above, t.pairs[1], t.pairs[2])
+		splitRight = m.newNodeWith2(t.above, t.pairs[1], t.pairs[2])
 		splitRight.subs[0] = rightInsert
 		splitRight.subs[0].above = splitRight
 		if t.subs[2] != nil {
@@ -336,7 +336,7 @@ func takeSplit[Key Sortable, Value any](t, fromSub, rightInsert *node[Key, Value
 		// pass split to upper level
 	case t.subs[2]: // rightInsert goes into fourth spot
 		t.pairN = 2
-		splitRight = newNode(t.above, t.pairs[2])
+		splitRight = m.newNodeWith1(t.above, t.pairs[2])
 		splitRight.subs[0] = rightInsert
 		splitRight.subs[0].above = splitRight
 		if t.subs[3] != nil {
@@ -346,7 +346,7 @@ func takeSplit[Key Sortable, Value any](t, fromSub, rightInsert *node[Key, Value
 		// pass split to upper level
 	case t.subs[3]: // rightInsert goes into fifth spot
 		t.pairN = 2
-		splitRight = newNode(t.above, *split)
+		splitRight = m.newNodeWith1(t.above, *split)
 		if t.subs[3] != nil {
 			splitRight.subs[0] = t.subs[3]
 			splitRight.subs[0].above = splitRight

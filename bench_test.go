@@ -69,19 +69,19 @@ func BenchmarkSetAppend(b *testing.B) {
 }
 
 func benchmarkSetAppend(b *testing.B, fillSize int) {
-	var m Set[int]
+	var keys Set[int]
 	for i := -fillSize; i < 0; i++ {
-		if !m.Insert(i) {
+		if !keys.Insert(i) {
 			b.Fatalf("fill insertion %d denied", i)
 		}
 	}
-	if n := m.Size(); n != fillSize {
+	if n := keys.Size(); n != fillSize {
 		b.Fatalf("fill size is %d, want %d", n, fillSize)
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if !m.Insert(i) {
+		if !keys.Insert(i) {
 			b.Fatalf("insertion %d denied", i)
 		}
 	}

@@ -53,7 +53,7 @@ type Map[Key Sortable, Value any] struct {
 	split Pair[Key, Value]
 }
 
-// Size returns the number of Keys in the Set.
+// Size returns the number of Keys in the Map.
 func (m *Map[Key, Value]) Size() int {
 	return m.top.size() // nil safe
 }
@@ -110,18 +110,18 @@ type Set[Key Sortable] struct {
 }
 
 // Size returns the number of Keys in the Set.
-func (c *Set[Key]) Size() int {
-	return c.m.Size()
+func (keys *Set[Key]) Size() int {
+	return keys.m.Size()
 }
 
 // Find returns the Key's presence in the Set.
-func (c *Set[Key]) Find(k Key) bool {
-	return c.m.FindPointer(k) != nil
+func (keys *Set[Key]) Find(k Key) bool {
+	return keys.m.FindPointer(k) != nil
 }
 
 // Insert adds the Key to the Set if and only if the Key is absent.
-func (c *Set[Key]) Insert(entry Key) bool {
-	return c.m.Insert(entry, struct{}{})
+func (keys *Set[Key]) Insert(entry Key) bool {
+	return keys.m.Insert(entry, struct{}{})
 }
 
 // NoCopy triggers go(1) vet when copied after the first use.

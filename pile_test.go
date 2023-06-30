@@ -3,45 +3,45 @@ package pile
 import "testing"
 
 func TestSet_script(t *testing.T) {
-	var c Set[string]
-	if n := c.Size(); n != 0 {
+	var keys Set[string]
+	if n := keys.Size(); n != 0 {
 		t.Errorf("got size %d on empty Set, want 0", n)
 	}
-	if c.Find("de") {
+	if keys.Find("de") {
 		t.Fatal("found string in empty Set")
 	}
-	if !c.Insert("de") {
+	if !keys.Insert("de") {
 		t.Error("new insert got false from empty Set, want true")
 	}
-	if n := c.Size(); n != 1 {
+	if n := keys.Size(); n != 1 {
 		t.Errorf("got size %d after insert, want 1", n)
 	}
-	if !c.Find("de") {
+	if !keys.Find("de") {
 		t.Error("single insert not found")
 	}
-	if c.Insert("de") {
+	if keys.Insert("de") {
 		t.Error("insert again got true, want false")
 	}
-	if n := c.Size(); n != 1 {
+	if n := keys.Size(); n != 1 {
 		t.Errorf("got size %d after duplicate insert, want 1", n)
 	}
 	if t.Failed() {
 		return
 	}
 
-	if c.Find("de_CH") {
+	if keys.Find("de_CH") {
 		t.Error("found absent string with matching prefix")
 	}
-	if !c.Insert("de_CH") {
+	if !keys.Insert("de_CH") {
 		t.Error("second insert got false on matching prefix, want true")
 	}
-	if !c.Find("de_CH") {
+	if !keys.Find("de_CH") {
 		t.Error("second insert not found")
 	}
-	if !c.Find("de") {
+	if !keys.Find("de") {
 		t.Error("first insert not lost after second insert")
 	}
-	if n := c.Size(); n != 2 {
+	if n := keys.Size(); n != 2 {
 		t.Errorf("got size %d after second insert, want 2", n)
 	}
 }

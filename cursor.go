@@ -46,16 +46,28 @@ type Cursor[Key Sortable, Value any] struct {
 
 // Key returns the Key at the current position.
 func (c *Cursor[Key, Value]) Key() Key {
+	if c.t == nil {
+		var zero Key
+		return zero
+	}
 	return c.t.pairs[c.pairI%3].K
 }
 
 // Value returns the Value at the current position.
 func (c *Cursor[Key, Value]) Value() Value {
+	if c.t == nil {
+		var zero Value
+		return zero
+	}
 	return c.t.pairs[c.pairI%3].V
 }
 
 // Swap assigns update to the current Key and it returns the previous Value.
 func (c *Cursor[Key, Value]) Swap(update Value) (previous Value) {
+	if c.t == nil {
+		var zero Value
+		return zero
+	}
 	p := &c.t.pairs[c.pairI%3].V
 	previous = *p
 	*p = update
@@ -64,6 +76,9 @@ func (c *Cursor[Key, Value]) Swap(update Value) (previous Value) {
 
 // Ascend moves the Cursor one key closer to Most, up to Most itself.
 func (c *Cursor[Key, Value]) Ascend() bool {
+	if c.t == nil {
+		return false
+	}
 	sub := c.t.subs[(c.pairI+1)&3]
 	if sub != nil {
 		// down to bottom level, left side
@@ -110,6 +125,9 @@ func (c *Cursor[Key, Value]) Ascend() bool {
 
 // Descend moves the Cursor one Key closer to Least, up to Least itself.
 func (c *Cursor[Key, Value]) Descend() bool {
+	if c.t == nil {
+		return false
+	}
 	sub := c.t.subs[c.pairI&3]
 	if sub != nil {
 		// down to bottom level, right side

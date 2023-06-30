@@ -66,7 +66,7 @@ func TestIteration(t *testing.T) {
 					j++
 				}
 				if j != len(want) {
-					t.Fatalf("cursor since key № %d missed %d entries", i+1, len(want) - j)
+					t.Fatalf("cursor since key № %d missed %d entries", i+1, len(want)-j)
 				}
 			}
 		})
@@ -118,13 +118,6 @@ func verifyBackward(t *testing.T, got *pile.Set[int], want []int) {
 
 func TestRange(t *testing.T) {
 	var keys pile.Set[int]
-	if c, ok := keys.Least(); ok {
-		t.Errorf("got least key %d on empty Set", c.Key())
-	}
-	if c, ok := keys.Most(); ok {
-		t.Errorf("got most key %d on empty Set", c.Key())
-	}
-
 	r := rand.NewSource(42)
 	var want []int
 	for i := 0; i < 99; i++ {
@@ -151,5 +144,45 @@ func verifyRange[Key pile.Sortable](t *testing.T, got *pile.Set[Key], least, mos
 		t.Errorf("most unvalaible, want %v", most)
 	} else if got := c.Key(); got != most {
 		t.Errorf("got most %v, want %v", got, most)
+	}
+}
+
+func TestNoCursor(t *testing.T) {
+	var keys pile.Map[string, string]
+	if c, ok := keys.Least(); ok {
+		t.Errorf("got least key %q on empty Set", c.Key())
+	} else {
+		verifyZeroCursor(t, &c)
+	}
+	if c, ok := keys.Most(); ok {
+		t.Errorf("got most key %q on empty Set", c.Key())
+	} else {
+		verifyZeroCursor(t, &c)
+	}
+	if c, ok := keys.At("x"); ok {
+		t.Errorf(`got at "x" key %q on empty Set`, c.Key())
+	} else {
+		verifyZeroCursor(t, &c)
+	}
+}
+
+func verifyZeroCursor(t *testing.T, c *pile.Cursor[string, string]) {
+	if got := c.Key(); got != "" {
+		t.Errorf("got key %q from zero iterator, want none", got)
+	}
+	if got := c.Value(); got != "" {
+		t.Errorf("got value %q from zero iterator, want none", got)
+	}
+	if c.Ascend() {
+		t.Error("got ascend from zero iterator")
+	}
+	if c.Descend() {
+		t.Error("got descend from zero iterator")
+	}
+	if got := c.Swap("foo"); got != "" {
+		t.Errorf("got %q from swap on zero iterator, want none", got)
+	}
+	if got := c.Swap("bar"); got != "" {
+		t.Errorf("got %q from second swap on zero iterator, want none", got)
 	}
 }

@@ -11,19 +11,14 @@ import (
 
 func ExampleCursor() {
 	var m pile.Map[rune, string]
-	m.Put('一', "いち")
-	m.Put('二', "に")
-	m.Put('三', "さん")
+	m.Put('Ⅰ', "一")
+	m.Put('Ⅱ', "二")
+	m.Put('Ⅲ', "三")
 
-	c, more := m.Last()
-	for ; more; more = c.Backward() {
-		c.Update(string([]rune{c.Fetch().K, 'つ'}))
-		fmt.Println(c.Fetch().V)
+	for c, ok := m.Least(); ok; ok = c.Ascend() {
+		fmt.Print(c.Swap(c.Value() + "つ"))
 	}
-	// Output:
-	// 二つ
-	// 三つ
-	// 一つ
+	// Output: 一二三
 }
 
 func TestIteration(t *testing.T) {
@@ -58,53 +53,53 @@ func TestIteration(t *testing.T) {
 	})
 }
 
-// VerifyForward uses an ascending Cursor to validate keys.
+// VerifyForward iterates ascending to validate keys.
 func verifyForward(t *testing.T, got *pile.Set[int], want []int) {
-	c, more := got.First()
+	c, ok := got.Least()
 	for i := range want {
-		if !more {
+		if !ok {
 			t.Errorf("cursor halted before key № %d, want %d more keys", i+1, len(want)-i)
 			return
 		}
 
-		if k := c.Fetch().K; k != want[i] {
+		if k := c.Key(); k != want[i] {
 			t.Errorf("cursor got key № %d value %d, want %d", i+1, k, want[i])
 		}
 
-		more = c.Forward()
+		ok = c.Ascend()
 	}
-	if more {
+	if ok {
 		t.Errorf("cursor got more after all %d keys passed", len(want))
 	}
 }
 
-// VerifyBackward uses an ascending Cursor to validate keys.
+// VerifyBackward iterates descending to validate keys.
 func verifyBackward(t *testing.T, got *pile.Set[int], want []int) {
-	c, more := got.Last()
+	c, ok := got.Most()
 	for i := len(want) - 1; i >= 0; i-- {
-		if !more {
+		if !ok {
 			t.Errorf("cursor halted before key № %d", len(want)-i)
 			return
 		}
 
-		if k := c.Fetch().K; k != want[i] {
+		if k := c.Key(); k != want[i] {
 			t.Errorf("cursor got key № %d value %d, want %d", i+1, k, want[i])
 		}
 
-		more = c.Backward()
+		ok = c.Descend()
 	}
-	if more {
+	if ok {
 		t.Errorf("cursor got more after all %d keys passed", len(want))
 	}
 }
 
 func TestRange(t *testing.T) {
 	var keys pile.Set[int]
-	if c, ok := keys.First(); ok {
-		t.Errorf("got first key %d on empty Set", c.Fetch().K)
+	if c, ok := keys.Least(); ok {
+		t.Errorf("got least key %d on empty Set", c.Key())
 	}
-	if c, ok := keys.Last(); ok {
-		t.Errorf("got last key %d on empty Set", c.Fetch().K)
+	if c, ok := keys.Most(); ok {
+		t.Errorf("got most key %d on empty Set", c.Key())
 	}
 
 	r := rand.NewSource(42)
@@ -120,18 +115,18 @@ func TestRange(t *testing.T) {
 	}
 }
 
-func verifyRange[Key pile.Sortable](t *testing.T, got *pile.Set[Key], first, last Key) {
-	c, ok := got.First()
+func verifyRange[Key pile.Sortable](t *testing.T, got *pile.Set[Key], least, most Key) {
+	c, ok := got.Least()
 	if !ok {
-		t.Errorf("first unvalaible, want key %v", first)
-	} else if got := c.Fetch().K; got != first {
-		t.Errorf("got first key %v, want %v", got, first)
+		t.Errorf("least unvalaible, want %v", least)
+	} else if got := c.Key(); got != least {
+		t.Errorf("got least %v, want %v", got, least)
 	}
 
-	c, ok = got.Last()
+	c, ok = got.Most()
 	if !ok {
-		t.Errorf("last unvalaible, want key %v", last)
-	} else if got := c.Fetch().K; got != last {
-		t.Errorf("got last key %v, want %v", got, last)
+		t.Errorf("most unvalaible, want %v", most)
+	} else if got := c.Key(); got != most {
+		t.Errorf("got most %v, want %v", got, most)
 	}
 }

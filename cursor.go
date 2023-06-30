@@ -1,19 +1,19 @@
 package pile
 
-// First either returns a new Cursor at the Key that is more than all other keys
-// from Map, or it returns false when the Map is empty. The Cursor becomes
-// invalid after any insertion or deletion.
-func (keys *Set[Key]) First() (Cursor[Key, struct{}], bool) { return keys.m.First() }
+// Least returns a new Cursor located at the Key which is less than all others
+// in the Set. The return is false when Map is empty. A Delete or Insert renders
+// the Cursor invalid.
+func (keys *Set[Key]) Least() (Cursor[Key, struct{}], bool) { return keys.m.Least() }
 
-// Last either returns a new Cursor at the Key that is more than all other keys
-// from Map, or it returns false when the Map is empty. The Cursor becomes
-// invalid after any insertion or deletion.
-func (keys *Set[Key]) Last() (Cursor[Key, struct{}], bool) { return keys.m.Last() }
+// Most returns a new Cursor located at the Key which is more than all others in
+// the Set. The return is false when Map is empty. A Delete or Insert renders
+// the Cursor invalid.
+func (keys *Set[Key]) Most() (Cursor[Key, struct{}], bool) { return keys.m.Most() }
 
-// First either returns a new Cursor at the Key that is more than all other keys
-// from Map, or it returns false when the Map is empty. The Cursor becomes
-// invalid after any insertion or deletion.
-func (m *Map[Key, Value]) First() (Cursor[Key, Value], bool) {
+// Least returns a new Cursor located at the Key which is less than all others
+// in the Set. The return is false when Map is empty. A Delete or Insert renders
+// the Cursor invalid.
+func (m *Map[Key, Value]) Least() (Cursor[Key, Value], bool) {
 	t := m.top
 	if t == nil {
 		return Cursor[Key, Value]{}, false
@@ -24,10 +24,10 @@ func (m *Map[Key, Value]) First() (Cursor[Key, Value], bool) {
 	return Cursor[Key, Value]{t: t, pairI: 0}, true
 }
 
-// Last either returns a new Cursor at the Key that is more than all other keys
-// from Map, or it returns false when the Map is empty. The Cursor becomes
-// invalid after any insertion or deletion.
-func (m *Map[Key, Value]) Last() (Cursor[Key, Value], bool) {
+// Most returns a new Cursor located at the Key which is more than all others in
+// the Map. The return is false when Map is empty. A Delete or Insert renders
+// the Cursor invalid.
+func (m *Map[Key, Value]) Most() (Cursor[Key, Value], bool) {
 	t := m.top
 	if t == nil {
 		return Cursor[Key, Value]{}, false
@@ -44,18 +44,26 @@ type Cursor[Key Sortable, Value any] struct {
 	pairI int
 }
 
-// Fetch returns the current position.
-func (c *Cursor[Key, Value]) Fetch() Pair[Key, Value] {
-	return c.t.pairs[c.pairI%3]
+// Key returns the Key at the current position.
+func (c *Cursor[Key, Value]) Key() Key {
+	return c.t.pairs[c.pairI%3].K
 }
 
-// Update assigns the Value to the Key.
-func (c *Cursor[Key, Value]) Update(v Value) {
-	c.t.pairs[c.pairI%3].V = v
+// Value returns the Value at the current position.
+func (c *Cursor[Key, Value]) Value() Value {
+	return c.t.pairs[c.pairI%3].V
 }
 
-// Forward moves the Cursor one step closer towards the Last if possible.
-func (c *Cursor[Key, Value]) Forward() bool {
+// Swap assigns update to the current Key and it returns the previous Value.
+func (c *Cursor[Key, Value]) Swap(update Value) (previous Value) {
+	p := &c.t.pairs[c.pairI%3].V
+	previous = *p
+	*p = update
+	return
+}
+
+// Ascend moves the Cursor one key closer to Most, up to Most itself.
+func (c *Cursor[Key, Value]) Ascend() bool {
 	sub := c.t.subs[(c.pairI+1)&3]
 	if sub != nil {
 		// down to bottom level, left side
@@ -100,8 +108,8 @@ func (c *Cursor[Key, Value]) Forward() bool {
 	return false
 }
 
-// Backward moves the Cursor one step closer towards the First if possible.
-func (c *Cursor[Key, Value]) Backward() bool {
+// Descend moves the Cursor one Key closer to Least, up to Least itself.
+func (c *Cursor[Key, Value]) Descend() bool {
 	sub := c.t.subs[c.pairI&3]
 	if sub != nil {
 		// down to bottom level, right side

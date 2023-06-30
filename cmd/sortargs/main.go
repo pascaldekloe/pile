@@ -47,13 +47,13 @@ func main() {
 
 	// print
 	if reverse {
-		for c, more := args.Last(); more; more = c.Backward() {
-			os.Stdout.WriteString(c.Fetch().K)
+		for c, ok := args.Least(); ok; ok = c.Descend() {
+			os.Stdout.WriteString(c.Key())
 			os.Stdout.WriteString(terminator)
 		}
 	} else {
-		for c, more := args.First(); more; more = c.Forward() {
-			os.Stdout.WriteString(c.Fetch().K)
+		for c, ok := args.Least(); ok; ok = c.Ascend() {
+			os.Stdout.WriteString(c.Key())
 			os.Stdout.WriteString(terminator)
 		}
 	}

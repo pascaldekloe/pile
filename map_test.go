@@ -2,7 +2,6 @@ package pile
 
 import (
 	"math/rand"
-	"slices"
 	"strconv"
 	"testing"
 )
@@ -64,14 +63,10 @@ func TestMap(t *testing.T) {
 		tests = append(tests, l)
 	}
 
-	var buf []Pair[int, int]
 	for _, test := range tests {
-		// build expected with some values
-		want := make([]Pair[int, int], len(test.want))
 		values := make(map[int]int, len(test.want))
-		for i, key := range test.want {
-			want[i] = Pair[int, int]{K: key, V: key + 42}
-			values[key] = want[i].V
+		for _, key := range test.want {
+			values[key] = key + 42
 		}
 
 		var list []byte
@@ -89,11 +84,6 @@ func TestMap(t *testing.T) {
 				m.Put(key, value)
 			}
 			verifyMapEqual(t, "golden", &m, values)
-			buf = m.AppendPairs(buf[:0])
-			if !slices.Equal(buf, want) {
-				t.Errorf("result got pairs %d, want pairs %d", buf, want)
-				t.Log(dumpMap(&m))
-			}
 		})
 
 		t.Run("InsertOrUpdate"+string(list), func(t *testing.T) {
@@ -107,11 +97,6 @@ func TestMap(t *testing.T) {
 				}
 			}
 			verifyMapEqual(t, "golden", &m, values)
-			buf = m.AppendPairs(buf[:0])
-			if !slices.Equal(buf, want) {
-				t.Errorf("result got pairs %d, want pairs %d", buf, want)
-				t.Log(dumpMap(&m))
-			}
 		})
 
 		t.Run("UpdateOrInsert"+string(list), func(t *testing.T) {
@@ -125,11 +110,6 @@ func TestMap(t *testing.T) {
 				}
 			}
 			verifyMapEqual(t, "golden", &m, values)
-			buf = m.AppendPairs(buf[:0])
-			if !slices.Equal(buf, want) {
-				t.Errorf("result got pairs %d, want pairs %d", buf, want)
-				t.Log(dumpMap(&m))
-			}
 		})
 
 	}

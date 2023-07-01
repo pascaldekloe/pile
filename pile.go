@@ -9,22 +9,22 @@ type Sortable interface {
 }
 
 // Pair is a Map entry.
-type Pair[Key Sortable, Value any] struct {
+type pair[Key Sortable, Value any] struct {
 	K Key
 	V Value
 }
 
-// A node holds up to tree Pairs in ascending Key order.
+// A node holds up to tree pairs in ascending Key order.
 // Nodes on ground level do not have any subnodes.
 // Higher nodes stack on pairN plus one subnodes.
 type node[Key Sortable, Value any] struct {
 	above *node[Key, Value]
 	pairN int                  // actual pairs count
 	subs  [4]*node[Key, Value] // directly under
-	pairs [3]Pair[Key, Value]  // own entries
+	pairs [3]pair[Key, Value]  // own entries
 }
 
-func (m *Map[Key, Value]) newNodeWith1(above *node[Key, Value], p Pair[Key, Value]) *node[Key, Value] {
+func (m *Map[Key, Value]) newNodeWith1(above *node[Key, Value], p pair[Key, Value]) *node[Key, Value] {
 	t := m.newNode()
 	t.above = above
 	t.pairs[0] = p
@@ -32,7 +32,7 @@ func (m *Map[Key, Value]) newNodeWith1(above *node[Key, Value], p Pair[Key, Valu
 	return t
 }
 
-func (m *Map[Key, Value]) newNodeWith2(above *node[Key, Value], p1, p2 Pair[Key, Value]) *node[Key, Value] {
+func (m *Map[Key, Value]) newNodeWith2(above *node[Key, Value], p1, p2 pair[Key, Value]) *node[Key, Value] {
 	t := m.newNode()
 	t.above = above
 	t.pairs[0] = p1
@@ -56,17 +56,17 @@ func (m *Map[Key, Value]) newNode() *node[Key, Value] {
 // Map provides sorted Key–Value registration. The zero Map is empty and ready
 // for use. Do not copy the Map struct.
 //
-// The best-case for storage-overhead per Pair is 16 bytes on 64-bit platforms.
-// The worst-case per Pair is 48 bytes plus the size of another 2 Pairs. E.g.,
-// the Pair[int, string] costs 24 bytes, which makes an overhead of between ⅔
-// and 4 times the Pair size.
+// The best-case for storage-overhead per pair is 16 bytes on 64-bit platforms.
+// The worst-case per pair is 48 bytes plus the size of another 2 pairs. E.g.,
+// the pair[int, string] costs 24 bytes, which makes an overhead of between ⅔
+// and 4 times the pair size.
 type Map[Key Sortable, Value any] struct {
 	check noCopy
 
 	top *node[Key, Value]
 
 	// reusable buffer for level push
-	split Pair[Key, Value]
+	split pair[Key, Value]
 
 	// allocation pool
 	nodeN int
@@ -97,25 +97,76 @@ func (t *node[Key, Value]) size() int {
 	return size
 }
 
-func (m *Map[Key, Value]) AppendPairs(dst []Pair[Key, Value]) []Pair[Key, Value] {
-	return m.top.appendPairs(dst) // nil safe
+// AppendKeys appends each Key in the Map to dst, ascending in Key order, and it
+// returns the extended buffer.
+func (m *Map[Key, Value]) AppendKeys(dst []Key) []Key {
+	return m.top.appendKeys(dst)
 }
 
-func (t *node[Key, Value]) appendPairs(dst []Pair[Key, Value]) []Pair[Key, Value] {
+func (t *node[Key, Value]) appendKeys(dst []Key) []Key {
 	if t != nil {
-		dst = t.subs[0].appendPairs(dst)
-		dst = append(dst, t.pairs[0])
-		dst = t.subs[1].appendPairs(dst)
+		dst = t.subs[0].appendKeys(dst)
+		dst = append(dst, t.pairs[0].K)
+		dst = t.subs[1].appendKeys(dst)
 		if t.pairN > 1 {
-			dst = append(dst, t.pairs[1])
-			dst = t.subs[2].appendPairs(dst)
+			dst = append(dst, t.pairs[1].K)
+			dst = t.subs[2].appendKeys(dst)
 			if t.pairN > 2 {
-				dst = append(dst, t.pairs[2])
-				dst = t.subs[3].appendPairs(dst)
+				dst = append(dst, t.pairs[2].K)
+				dst = t.subs[3].appendKeys(dst)
 			}
 		}
 	}
 	return dst
+}
+
+// Append appends each Value in the Map to dst, ascending in Key order, and it
+// returns the extended buffer.
+func (m *Map[Key, Value]) AppendValues(dst []Value) []Value {
+	return m.top.appendValues(dst)
+}
+
+func (t *node[Key, Value]) appendValues(dst []Value) []Value {
+	if t != nil {
+		dst = t.subs[0].appendValues(dst)
+		dst = append(dst, t.pairs[0].V)
+		dst = t.subs[1].appendValues(dst)
+		if t.pairN > 1 {
+			dst = append(dst, t.pairs[1].V)
+			dst = t.subs[2].appendValues(dst)
+			if t.pairN > 2 {
+				dst = append(dst, t.pairs[2].V)
+				dst = t.subs[3].appendValues(dst)
+			}
+		}
+	}
+	return dst
+}
+
+// Append appends each Key–Value pair in the Map to keys and values, ascending
+// in Key order, and it returns the extended buffers.
+func (m *Map[Key, Value]) Append(keys []Key, values []Value) ([]Key, []Value) {
+	return m.top.appendKeysAndValues(keys, values)
+}
+
+func (t *node[Key, Value]) appendKeysAndValues(keys []Key, values []Value) ([]Key, []Value) {
+	if t != nil {
+		keys, values = t.subs[0].appendKeysAndValues(keys, values)
+		keys = append(keys, t.pairs[0].K)
+		values = append(values, t.pairs[0].V)
+		keys, values = t.subs[1].appendKeysAndValues(keys, values)
+		if t.pairN > 1 {
+			keys = append(keys, t.pairs[1].K)
+			values = append(values, t.pairs[1].V)
+			keys, values = t.subs[2].appendKeysAndValues(keys, values)
+			if t.pairN > 2 {
+				keys = append(keys, t.pairs[2].K)
+				values = append(values, t.pairs[2].V)
+				keys, values = t.subs[3].appendKeysAndValues(keys, values)
+			}
+		}
+	}
+	return keys, values
 }
 
 // Set provides sorted Key registration. The zero Set is empty and ready for
@@ -132,6 +183,12 @@ type Set[Key Sortable] struct {
 // Size returns the number of Keys in the Set.
 func (keys *Set[Key]) Size() int {
 	return keys.m.Size()
+}
+
+// Append appends each Key in the Sap to dst, ascending in Key order, and it
+// returns the extended buffer.
+func (keys *Set[Key]) Append(dst []Key) []Key {
+	return keys.m.AppendKeys(dst)
 }
 
 // Find returns the Key's presence in the Set.

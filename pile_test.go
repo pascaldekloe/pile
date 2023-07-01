@@ -93,3 +93,55 @@ func TestMap_script(t *testing.T) {
 		t.Errorf("got size %d after second insert, want 2", n)
 	}
 }
+
+func TestAppendKeys(t *testing.T) {
+	const n = 99
+	var keys Set[int]
+	var want []int
+	for i := 0; i < n; i++ {
+		keys.Insert(i)
+		want = append(want, i)
+	}
+
+	got := keys.Append(nil)
+	if len(got) != n {
+		t.Fatalf("got %d keys, want %d", len(got), n)
+	}
+	for i := range got {
+		if got[i] != want[i] {
+			t.Errorf("got keys %d, want %d", got[i], want[i])
+		}
+	}
+}
+
+func TestAppendKeysAndValues(t *testing.T) {
+	const n = 99
+	var m Map[int, int]
+	var wantKeys, wantValues []int
+	for i := 0; i < n; i++ {
+		m.Put(i, i+1001)
+		wantKeys = append(wantKeys, i)
+		wantValues = append(wantValues, i+1001)
+	}
+
+	gotKeys, gotValues := m.Append(nil, nil)
+	if len(gotKeys) != n || len(gotValues) != n {
+		t.Fatalf("got %d keys and %d values, want %d for both", len(gotKeys), len(gotValues), n)
+	}
+	for i := range gotKeys {
+		if gotKeys[i] != wantKeys[i] || gotValues[i] != wantValues[i] {
+			t.Errorf("got key—value pair %d–%d, want %d–%d",
+				gotKeys[i], gotValues[i], wantValues[i], wantValues[i])
+		}
+	}
+
+	gotValues = m.AppendValues(gotValues[:0])
+	if len(gotValues) != n {
+		t.Fatalf("got %d values, want %d", len(gotValues), n)
+	}
+	for i := range gotValues {
+		if gotValues[i] != wantValues[i] {
+			t.Errorf("got value %d, want %d", wantValues[i], wantValues[i])
+		}
+	}
+}

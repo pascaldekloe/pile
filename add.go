@@ -3,7 +3,7 @@ package pile
 // Insert assigns the Value to the Key if and only if the Key is absent.
 func (m *Map[Key, Value]) Insert(k Key, v Value) bool {
 	if m.top == nil {
-		m.top = m.newNodeWith1(nil, Pair[Key, Value]{K: k, V: v})
+		m.top = m.newNodeWith1(nil, pair[Key, Value]{K: k, V: v})
 		return true
 	}
 	t := m.top
@@ -113,7 +113,7 @@ InsertThirdOverflow:
 InsertFourthOverflow:
 	t.pairN = 2
 	m.split = t.pairs[2]
-	splitRight = m.newNodeWith1(t.above, Pair[Key, Value]{K: k, V: v})
+	splitRight = m.newNodeWith1(t.above, pair[Key, Value]{K: k, V: v})
 
 Overflow:
 	for t.above != nil {
@@ -139,7 +139,7 @@ Overflow:
 // m.Update(k, v) || m.Insert(k, v).
 func (m *Map[Key, Value]) Put(k Key, v Value) {
 	if m.top == nil {
-		m.top = m.newNodeWith1(nil, Pair[Key, Value]{K: k, V: v})
+		m.top = m.newNodeWith1(nil, pair[Key, Value]{K: k, V: v})
 		return
 	}
 	t := m.top
@@ -254,7 +254,7 @@ InsertThirdOverflow:
 InsertFourthOverflow:
 	t.pairN = 2
 	m.split = t.pairs[2]
-	splitRight = m.newNodeWith1(t.above, Pair[Key, Value]{K: k, V: v})
+	splitRight = m.newNodeWith1(t.above, pair[Key, Value]{K: k, V: v})
 
 Overflow:
 	for t.above != nil {
@@ -277,7 +277,7 @@ Overflow:
 // TakeSplit adds node rightInsert next to fromSub in t, separated by the split.
 // The operation may cause another split (pointer update) with a new splitRight
 // (relative to t).
-func (m *Map[Key, Value]) takeSplit(t, fromSub, rightInsert *node[Key, Value], split *Pair[Key, Value]) (splitRight *node[Key, Value]) {
+func (m *Map[Key, Value]) takeSplit(t, fromSub, rightInsert *node[Key, Value], split *pair[Key, Value]) (splitRight *node[Key, Value]) {
 	if t.pairN < 3 { // fits in node
 		t.pairN++
 		switch fromSub {

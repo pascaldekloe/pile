@@ -14,7 +14,7 @@ var (
 )
 
 func main() {
-	flag.BoolFunc("require", "The output is suppressed with exit status 4 when the `string` is not present amongst the input.", func(s string) error {
+	flag.Func("require", "The output is suppressed with exit status 4 when the `string` is not present amongst the input.", func(s string) error {
 		requires = append(requires, s)
 		return nil
 	})

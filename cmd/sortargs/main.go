@@ -18,7 +18,7 @@ func main() {
 		requires = append(requires, s)
 		return nil
 	})
-	flag.Bool("deny", "The output is suppressed with exit status 4 when the `string` is present amongst the input.", func(s string) error {
+	flag.Func("deny", "The output is suppressed with exit status 4 when the `string` is present amongst the input.", func(s string) error {
 		denies = append(denies, s)
 		return nil
 	})

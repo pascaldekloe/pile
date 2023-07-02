@@ -46,3 +46,6 @@ BenchmarkInsert/Random/set-8          	 5090876	       470.5 ns/op
 PASS
 ok  	github.com/pascaldekloe/pile	111.711s
 ```
+
+Pile has its own strengths and weaknesses when
+[compared to others](https://github.com/tidwall/btree-benchmark/pull/4).

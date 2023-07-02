@@ -143,26 +143,26 @@ func (t *node[Key, Value]) appendValues(dst []Value) []Value {
 	return dst
 }
 
-// Append appends each Key–Value pair in the Map to keys and values, ascending
-// in Key order, and it returns the extended buffers.
-func (m *Map[Key, Value]) Append(keys []Key, values []Value) ([]Key, []Value) {
-	return m.top.appendKeysAndValues(keys, values)
+// AppendPairs appends each Key–Value pair in the Map to keys and values,
+// ascending in Key order, and it returns the extended buffers.
+func (m *Map[Key, Value]) AppendPairs(keys []Key, values []Value) ([]Key, []Value) {
+	return m.top.appendPairs(keys, values)
 }
 
-func (t *node[Key, Value]) appendKeysAndValues(keys []Key, values []Value) ([]Key, []Value) {
+func (t *node[Key, Value]) appendPairs(keys []Key, values []Value) ([]Key, []Value) {
 	if t != nil {
-		keys, values = t.subs[0].appendKeysAndValues(keys, values)
+		keys, values = t.subs[0].appendPairs(keys, values)
 		keys = append(keys, t.pairs[0].K)
 		values = append(values, t.pairs[0].V)
-		keys, values = t.subs[1].appendKeysAndValues(keys, values)
+		keys, values = t.subs[1].appendPairs(keys, values)
 		if t.pairN > 1 {
 			keys = append(keys, t.pairs[1].K)
 			values = append(values, t.pairs[1].V)
-			keys, values = t.subs[2].appendKeysAndValues(keys, values)
+			keys, values = t.subs[2].appendPairs(keys, values)
 			if t.pairN > 2 {
 				keys = append(keys, t.pairs[2].K)
 				values = append(values, t.pairs[2].V)
-				keys, values = t.subs[3].appendKeysAndValues(keys, values)
+				keys, values = t.subs[3].appendPairs(keys, values)
 			}
 		}
 	}
@@ -185,9 +185,9 @@ func (keys *Set[Key]) Size() int {
 	return keys.m.Size()
 }
 
-// Append appends each Key in the Sap to dst, ascending in Key order, and it
+// AppendKeys appends each Key in the Set to dst, ascending in Key order, and it
 // returns the extended buffer.
-func (keys *Set[Key]) Append(dst []Key) []Key {
+func (keys *Set[Key]) AppendKeys(dst []Key) []Key {
 	return keys.m.AppendKeys(dst)
 }
 

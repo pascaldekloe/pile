@@ -103,7 +103,7 @@ func TestAppendKeys(t *testing.T) {
 		want = append(want, i)
 	}
 
-	got := keys.Append(nil)
+	got := keys.AppendKeys(nil)
 	if len(got) != n {
 		t.Fatalf("got %d keys, want %d", len(got), n)
 	}
@@ -124,7 +124,7 @@ func TestAppendKeysAndValues(t *testing.T) {
 		wantValues = append(wantValues, i+1001)
 	}
 
-	gotKeys, gotValues := m.Append(nil, nil)
+	gotKeys, gotValues := m.AppendPairs(nil, nil)
 	if len(gotKeys) != n || len(gotValues) != n {
 		t.Fatalf("got %d keys and %d values, want %d for both", len(gotKeys), len(gotValues), n)
 	}

@@ -62,15 +62,15 @@ func (c *Cursor[Key, Value]) Value() Value {
 	return c.t.pairs[c.pairI%3].V
 }
 
-// Swap assigns update to the current Key and it returns the previous Value.
-func (c *Cursor[Key, Value]) Swap(update Value) (previous Value) {
+// Swap sets the Value and it returns the previous one.
+func (c *Cursor[Key, Value]) Swap(v Value) (previous Value) {
 	if c.t == nil {
 		var zero Value
 		return zero
 	}
 	p := &c.t.pairs[c.pairI%3].V
 	previous = *p
-	*p = update
+	*p = v
 	return
 }
 

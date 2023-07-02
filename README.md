@@ -1,13 +1,24 @@
 # Pile
 
 Pile provides sorted data structures for the Go programming language.
-Delete is not implemented (yet).
+
+The Map operations are Find, Insert, Update and Put, plus Swap from Iterator.
+Delete is not implemented (yet). Iterator instantiation with At, Least or Most
+is lightweight—no memory alloctaion.
 
 This is free and unencumbered software released into the
 [public domain](https://creativecommons.org/publicdomain/zero/1.0).
 
 [![API Documentation](https://godoc.org/github.com/pascaldekloe/pile?status.svg)](https://godoc.org/github.com/pascaldekloe/pile)
 [![Build Status](https://github.com/pascaldekloe/pile/actions/workflows/go.yml/badge.svg)](https://github.com/pascaldekloe/pile/actions/workflows/go.yml)
+
+
+# Scale
+
+The Map works well with large Value types and no pointer(s). Data in the Map
+releases the garbage collector with fewer objects to care about. Go's native
+(hash) map can't cope with embed values at scale as resize events eventually
+become too big.
 
 
 # Performance

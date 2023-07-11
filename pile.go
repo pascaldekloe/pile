@@ -100,6 +100,9 @@ func (t *node[Key, Value]) size() int {
 // AppendKeys appends each Key in the Map to dst, ascending in Key order, and it
 // returns the extended buffer.
 func (m *Map[Key, Value]) AppendKeys(dst []Key) []Key {
+	if dst == nil {
+		dst = make([]Key, 0, m.Size())
+	}
 	return m.top.appendKeys(dst)
 }
 
@@ -123,6 +126,9 @@ func (t *node[Key, Value]) appendKeys(dst []Key) []Key {
 // Append appends each Value in the Map to dst, ascending in Key order, and it
 // returns the extended buffer.
 func (m *Map[Key, Value]) AppendValues(dst []Value) []Value {
+	if dst == nil {
+		dst = make([]Value, 0, m.Size())
+	}
 	return m.top.appendValues(dst)
 }
 
@@ -146,6 +152,15 @@ func (t *node[Key, Value]) appendValues(dst []Value) []Value {
 // AppendPairs appends each Key–Value pair in the Map to keys and values,
 // ascending in Key order, and it returns the extended buffers.
 func (m *Map[Key, Value]) AppendPairs(keys []Key, values []Value) ([]Key, []Value) {
+	if keys == nil || values == nil {
+		n := m.Size()
+		if keys == nil {
+			keys = make([]Key, 0, n)
+		}
+		if values == nil {
+			values = make([]Value, 0, n)
+		}
+	}
 	return m.top.appendPairs(keys, values)
 }
 
